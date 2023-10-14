@@ -1,8 +1,6 @@
-import * as dotenv from 'dotenv'
 import path from 'path'
 import { promises as fs } from 'fs'
 import { MyFileSystem } from './FileSystem'
-dotenv.config()
 
 async function main() {
     const filePath = path.join(__dirname, '..', 'input-day-7.txt')

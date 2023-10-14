@@ -14,13 +14,6 @@ export class MyFileSystem implements Asset {
     currentPath: string[] = []
     children: Record<string, Asset> = {}
 
-    // CHALLENGE A
-    private totalSumWithPredicate: number = 0
-
-    // CHALLENGE B
-    private bestCandidate: [string, number] = ['', Infinity]
-    private target = 3_313_415
-
     constructor() {}
 
     addDirectory(name: string) {
@@ -54,38 +47,50 @@ export class MyFileSystem implements Asset {
     }
 
     findTotalSizeFileSystem() {
-        this.go(this)
-
-        return this.totalSumWithPredicate
+        const [, total] = this.go(this)
+        return total
     }
 
     findBestCandidate() {
-        this.go(this)
-
-        return this.bestCandidate
+        const [, , best] = this.go(this)
+        return best
     }
 
-    private go(asset: Asset) {
-        if (Object.keys(asset.children!).length === 0) return 0
+    private go(
+        asset: Asset,
+        predicateTotal: number = 0,
+        bestCandidate: [string, number] = ['', Infinity]
+    ): [number, number, [string, number]] {
+        if (Object.keys(asset.children!).length === 0) return [0, predicateTotal, bestCandidate]
 
         let totalSize = 0
+        let newBestCandidate = bestCandidate
 
         for (let k in asset.children) {
             if (asset.children[k].type === 'file') {
                 totalSize += asset.children[k].size!
             } else if (asset.children[k].type === 'directory') {
-                totalSize += this.go(asset.children[k])
+                const [subSize, newPredicateTotal, candidate] = this.go(
+                    asset.children[k],
+                    predicateTotal,
+                    newBestCandidate
+                )
+                totalSize += subSize
+                predicateTotal = newPredicateTotal
+                newBestCandidate = candidate
             }
         }
 
-        if (totalSize >= this.target && totalSize <= this.bestCandidate[1]) {
-            this.bestCandidate = [asset.name, totalSize]
-        }
-
+        // CHALLENGE A
         if (totalSize <= 100_000) {
-            this.totalSumWithPredicate += totalSize
+            predicateTotal += totalSize
         }
 
-        return totalSize
+        // CHALLENGE B
+        if (totalSize >= 3_313_415 && totalSize <= newBestCandidate[1]) {
+            newBestCandidate = [asset.name, totalSize]
+        }
+
+        return [totalSize, predicateTotal, newBestCandidate]
     }
 }
