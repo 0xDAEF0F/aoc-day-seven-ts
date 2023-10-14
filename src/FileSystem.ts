@@ -1,18 +1,27 @@
 import { set } from 'lodash'
 
 interface Asset {
-    name: string;
-    type: 'file' | 'directory';
-    size?: number;
-    children?: { [name: string]: Asset };
+    name: string
+    type: 'file' | 'directory'
+    size?: number
+    children?: { [name: string]: Asset }
 }
 
-export class MyFileSystem {
+export class MyFileSystem implements Asset {
+    name = 'root'
+    type = 'directory' as const
+
     currentPath: string[] = []
     children: Record<string, Asset> = {}
-    totalSum: number = 0
 
-    constructor() { }
+    // CHALLENGE A
+    private totalSumWithPredicate: number = 0
+
+    // CHALLENGE B
+    private bestCandidate: [string, number] = ['', Infinity]
+    private target = 3_313_415
+
+    constructor() {}
 
     addDirectory(name: string) {
         const newDir: Asset = { name, type: 'directory', children: {} }
@@ -20,7 +29,7 @@ export class MyFileSystem {
         if (this.currentPath.length === 0) {
             set(this.children, name, newDir)
         } else {
-            const path = this.currentPath.flatMap((n) => [n, "children"]).concat(name)
+            const path = this.currentPath.flatMap((n) => [n, 'children']).concat(name)
             set(this.children, path, newDir)
         }
     }
@@ -31,7 +40,7 @@ export class MyFileSystem {
         if (this.currentPath.length === 0) {
             set(this.children, name, newFile)
         } else {
-            const path = this.currentPath.flatMap((n) => [n, "children"]).concat(name)
+            const path = this.currentPath.flatMap((n) => [n, 'children']).concat(name)
             set(this.children, path, newFile)
         }
     }
@@ -45,26 +54,36 @@ export class MyFileSystem {
     }
 
     findTotalSizeFileSystem() {
-        this.totalSum = 0
-        this.goFindSize(this.children)
-        return this.totalSum
+        this.go(this)
+
+        return this.totalSumWithPredicate
     }
 
-    private goFindSize(asset: Record<string, Asset>): number {
-        if (Object.keys(asset).length === 0) return 0
+    findBestCandidate() {
+        this.go(this)
+
+        return this.bestCandidate
+    }
+
+    private go(asset: Asset) {
+        if (Object.keys(asset.children!).length === 0) return 0
 
         let totalSize = 0
 
-        for (let k in asset) {
-            if (asset[k].type === 'file') {
-                totalSize += asset[k].size!
-            } else if (asset[k].type === 'directory') {
-                totalSize += this.goFindSize(asset[k].children!)
+        for (let k in asset.children) {
+            if (asset.children[k].type === 'file') {
+                totalSize += asset.children[k].size!
+            } else if (asset.children[k].type === 'directory') {
+                totalSize += this.go(asset.children[k])
             }
         }
 
+        if (totalSize >= this.target && totalSize <= this.bestCandidate[1]) {
+            this.bestCandidate = [asset.name, totalSize]
+        }
+
         if (totalSize <= 100_000) {
-            this.totalSum += totalSize
+            this.totalSumWithPredicate += totalSize
         }
 
         return totalSize

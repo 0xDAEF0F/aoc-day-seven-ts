@@ -12,7 +12,7 @@ async function main() {
     const instructionChunks: string[][] = []
 
     lines.forEach((l) => {
-        if (!l.startsWith("$")) {
+        if (!l.startsWith('$')) {
             instructionChunks[instructionChunks.length - 1].push(l)
         } else {
             instructionChunks.push([l])
@@ -22,20 +22,19 @@ async function main() {
     const fileSystem = new MyFileSystem()
 
     instructionChunks.forEach((chunk) => {
-        if (chunk[0].startsWith("$ cd")) {
+        if (chunk[0].startsWith('$ cd')) {
             // change `pathState`
             const nextDest = chunk[0].slice(5)
             const goParent = nextDest === '..'
 
             if (goParent) fileSystem.changeDirectory('..')
             else fileSystem.changeDirectory(nextDest)
-
-        } else if (chunk[0].startsWith("$ ls")) {
+        } else if (chunk[0].startsWith('$ ls')) {
             chunk.forEach((node, i) => {
                 // skip first iteration (we know it is the instruction)
                 if (i === 0) return
 
-                if (node.startsWith("dir")) {
+                if (node.startsWith('dir')) {
                     const dirName = node.split(' ')[1]
                     fileSystem.addDirectory(dirName)
                 } else {
@@ -47,7 +46,10 @@ async function main() {
         }
     })
 
-    console.log(fileSystem.findTotalSizeFileSystem())
+    console.log({
+        a: fileSystem.findTotalSizeFileSystem(),
+        b: fileSystem.findBestCandidate(),
+    })
 }
 
 main()
